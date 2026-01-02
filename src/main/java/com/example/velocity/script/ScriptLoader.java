@@ -174,10 +174,8 @@ public class ScriptLoader {
         try (DirectoryStream<Path> stream = Files.newDirectoryStream(scriptsDirectory, "*.vsk")) {
             for (Path scriptFile : stream) {
                 String fileName = scriptFile.getFileName().toString();
-                // Only include files that don't have .disabled extension
-                if (!fileName.endsWith(".disabled")) {
-                    scriptNames.add(fileName);
-                }
+                // The "*.vsk" pattern already excludes "*.vsk.disabled" files
+                scriptNames.add(fileName);
             }
         } catch (IOException e) {
             logger.error("Failed to read scripts directory", e);

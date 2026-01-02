@@ -20,18 +20,20 @@ public class VariableReplacer {
         
         // Replace player expressions in braces: {player}, {player's name}, {player's uuid}, {player's server}
         // These MUST be in {} when inside strings, otherwise they are sent as literal text
-        result = result.replace("{player}", executor.getUsername());
-        result = result.replace("{player's name}", executor.getUsername());
-        result = result.replace("{player's uuid}", executor.getUniqueId().toString());
-        
-        // Also support %player% and %uuid% for backwards compatibility and event contexts
-        result = result.replace("%player%", executor.getUsername());
-        result = result.replace("%uuid%", executor.getUniqueId().toString());
-        
-        // Replace player's server if available
-        if (executor.getCurrentServer().isPresent()) {
-            result = result.replace("{player's server}", 
-                executor.getCurrentServer().get().getServerInfo().getName());
+        if (executor != null) {
+            result = result.replace("{player}", executor.getUsername());
+            result = result.replace("{player's name}", executor.getUsername());
+            result = result.replace("{player's uuid}", executor.getUniqueId().toString());
+            
+            // Also support %player% and %uuid% for backwards compatibility and event contexts
+            result = result.replace("%player%", executor.getUsername());
+            result = result.replace("%uuid%", executor.getUniqueId().toString());
+            
+            // Replace player's server if available
+            if (executor.getCurrentServer().isPresent()) {
+                result = result.replace("{player's server}", 
+                    executor.getCurrentServer().get().getServerInfo().getName());
+            }
         }
         
         // Replace command arguments (%argname%, %arg-1%, etc.)
@@ -78,18 +80,20 @@ public class VariableReplacer {
         Map<String, String> variables = new HashMap<>();
         
         // Add player expression variables (use {} syntax inside strings)
-        variables.put("{player}", executor.getUsername());
-        variables.put("{player's name}", executor.getUsername());
-        variables.put("{player's uuid}", executor.getUniqueId().toString());
-        
-        // Also add %player% and %uuid% for backwards compatibility
-        variables.put("%player%", executor.getUsername());
-        variables.put("%uuid%", executor.getUniqueId().toString());
-        
-        // Add player's server if available
-        if (executor.getCurrentServer().isPresent()) {
-            variables.put("{player's server}", 
-                executor.getCurrentServer().get().getServerInfo().getName());
+        if (executor != null) {
+            variables.put("{player}", executor.getUsername());
+            variables.put("{player's name}", executor.getUsername());
+            variables.put("{player's uuid}", executor.getUniqueId().toString());
+            
+            // Also add %player% and %uuid% for backwards compatibility
+            variables.put("%player%", executor.getUsername());
+            variables.put("%uuid%", executor.getUniqueId().toString());
+            
+            // Add player's server if available
+            if (executor.getCurrentServer().isPresent()) {
+                variables.put("{player's server}", 
+                    executor.getCurrentServer().get().getServerInfo().getName());
+            }
         }
         
         // Add command arguments (%argname%, %arg-1%, etc.)

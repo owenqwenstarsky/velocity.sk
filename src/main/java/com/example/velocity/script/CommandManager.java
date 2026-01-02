@@ -50,11 +50,10 @@ public class CommandManager {
         // Store the command
         registeredCommands.put(commandName, commandScript);
 
-        // Register with Velocity
+        // Register with Velocity - don't pass commandName in aliases parameter
         server.getCommandManager().register(
             commandName,
-            new ScriptCommand(commandScript),
-            commandName
+            new ScriptCommand(commandScript)
         );
 
         logger.info("Registered command: /{}", commandName);
@@ -63,8 +62,7 @@ public class CommandManager {
         for (String alias : commandScript.getAliases()) {
             server.getCommandManager().register(
                 alias,
-                new ScriptCommand(commandScript),
-                alias
+                new ScriptCommand(commandScript)
             );
             logger.info("Registered alias: /{} -> /{}", alias, commandName);
         }

@@ -182,7 +182,9 @@ public class VskCommand implements SimpleCommand {
             return;
         }
 
-        Script script = scriptLoader.loadSingleScript(scriptName);
+        // Remove .disabled extension if present for loading
+        String enabledScriptName = scriptName.endsWith(".disabled") ? scriptName.replace(".disabled", "") : scriptName;
+        Script script = scriptLoader.loadSingleScript(enabledScriptName);
         
         if (script == null) {
             invocation.source().sendMessage(
@@ -194,9 +196,9 @@ public class VskCommand implements SimpleCommand {
         commandManager.registerScript(script);
 
         invocation.source().sendMessage(
-            Component.text("Successfully enabled script: " + scriptName, NamedTextColor.GREEN)
+            Component.text("Successfully enabled script: " + enabledScriptName, NamedTextColor.GREEN)
         );
-        logger.info("Enabled and loaded script: {}", scriptName);
+        logger.info("Enabled and loaded script: {}", enabledScriptName);
     }
 
     // ========== DISABLE ==========
