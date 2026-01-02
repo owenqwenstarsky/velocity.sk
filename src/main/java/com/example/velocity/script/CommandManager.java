@@ -1,5 +1,9 @@
 package com.example.velocity.script;
 
+import com.example.velocity.script.execution.ActionExecutor;
+import com.example.velocity.script.execution.ExecutionContext;
+import com.example.velocity.script.variable.VariableManager;
+import com.velocitypowered.api.command.CommandSource;
 import com.velocitypowered.api.command.SimpleCommand;
 import com.velocitypowered.api.proxy.Player;
 import com.velocitypowered.api.proxy.ProxyServer;
@@ -9,16 +13,20 @@ import org.slf4j.Logger;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Optional;
+import java.util.UUID;
 
 public class CommandManager {
     private final ProxyServer server;
     private final Logger logger;
+    private final VariableManager variableManager;
+    private final ActionExecutor actionExecutor;
     private final Map<String, Script.CommandScript> registeredCommands;
 
-    public CommandManager(ProxyServer server, Logger logger) {
+    public CommandManager(ProxyServer server, Logger logger, VariableManager variableManager) {
         this.server = server;
         this.logger = logger;
+        this.variableManager = variableManager;
+        this.actionExecutor = new ActionExecutor(server, logger);
         this.registeredCommands = new HashMap<>();
     }
 
@@ -50,6 +58,16 @@ public class CommandManager {
         );
 
         logger.info("Registered command: /{}", commandName);
+
+        // Register aliases
+        for (String alias : commandScript.getAliases()) {
+            server.getCommandManager().register(
+                alias,
+                new ScriptCommand(commandScript),
+                alias
+            );
+            logger.info("Registered alias: /{} -> /{}", alias, commandName);
+        }
     }
 
     private class ScriptCommand implements SimpleCommand {
@@ -61,9 +79,24 @@ public class CommandManager {
 
         @Override
         public void execute(Invocation invocation) {
-            if (!(invocation.source() instanceof Player player)) {
-                invocation.source().sendMessage(Component.text("This command can only be executed by a player."));
+            CommandSource source = invocation.source();
+
+            // Check if source is a player
+            if (!(source instanceof Player player)) {
+                source.sendMessage(Component.text("This command can only be executed by a player."));
                 return;
+            }
+
+            // Check permission
+            if (commandScript.getPermission() != null && !commandScript.getPermission().isEmpty()) {
+                if (!player.hasPermission(commandScript.getPermission())) {
+                    String message = commandScript.getPermissionMessage();
+                    if (message == null || message.isEmpty()) {
+                        message = "§cYou don't have permission to use this command.";
+                    }
+                    player.sendMessage(Component.text(message));
+                    return;
+                }
             }
 
             // Get command arguments
@@ -72,61 +105,42 @@ public class CommandManager {
             // Check if enough arguments are provided
             List<String> requiredArgs = commandScript.getArguments();
             if (requiredArgs.size() > args.length) {
-                player.sendMessage(Component.text("Usage: /" + commandScript.getCommandName() + 
-                    (requiredArgs.isEmpty() ? "" : " <" + String.join("> <", requiredArgs) + ">")));
+                String usage = commandScript.getUsage();
+                if (usage == null || usage.isEmpty()) {
+                    usage = "/" + commandScript.getCommandName() + 
+                        (requiredArgs.isEmpty() ? "" : " <" + String.join("> <", requiredArgs) + ">");
+                }
+                player.sendMessage(Component.text("§cUsage: " + usage));
                 return;
             }
 
-            // Execute all actions in the command
-            for (Script.Action action : commandScript.getActions()) {
-                executeAction(player, action, requiredArgs, args);
-            }
-        }
+            // Create execution context
+            UUID scopeId = variableManager.createScope();
+            
+            try {
+                ExecutionContext context = new ExecutionContext.Builder()
+                    .server(server)
+                    .player(player)
+                    .arguments(requiredArgs, args)
+                    .variableManager(variableManager)
+                    .scopeId(scopeId)
+                    .build();
 
-        private void executeAction(Player executor, Script.Action action, List<String> argNames, String[] argValues) {
-            if (action.getType() == Script.ActionType.SEND_MESSAGE) {
-                // Replace variables in the message
-                String processedMessage = VariableReplacer.replace(
-                    action.getMessage(), 
-                    executor, 
-                    argNames, 
-                    argValues
-                );
-                Component message = Component.text(processedMessage);
-
-                switch (action.getTarget()) {
-                    case PLAYER -> {
-                        executor.sendMessage(message);
-                        logger.debug("Sent message to player: {}", executor.getUsername());
-                    }
-                    case ALL_PLAYERS -> {
-                        server.getAllPlayers().forEach(p -> p.sendMessage(message));
-                        logger.debug("Broadcast message to all players");
-                    }
-                    case SPECIFIC_PLAYER -> {
-                        // Replace variables in target player name
-                        String targetName = VariableReplacer.replace(
-                            action.getTargetPlayer(),
-                            executor,
-                            argNames,
-                            argValues
-                        );
-                        Optional<Player> targetPlayer = server.getPlayer(targetName);
-                        if (targetPlayer.isPresent()) {
-                            targetPlayer.get().sendMessage(message);
-                            logger.debug("Sent message to player: {}", targetName);
-                        } else {
-                            logger.warn("Skipped sending message to '{}' - player is not online (executed by: {})", 
-                                targetName, executor.getUsername());
-                        }
-                    }
-                }
+                // Execute all actions in the command
+                actionExecutor.executeActions(commandScript.getActions(), context);
+            } catch (Exception e) {
+                logger.error("Error executing command /{} for player {}", 
+                            commandScript.getCommandName(), player.getUsername(), e);
+                player.sendMessage(Component.text("§cAn error occurred while executing this command."));
+            } finally {
+                // Clean up local variables
+                variableManager.destroyScope(scopeId);
             }
         }
 
         @Override
         public boolean hasPermission(Invocation invocation) {
-            // No permissions required for now
+            // We handle permission checking in execute() to send custom messages
             return true;
         }
     }
@@ -144,15 +158,26 @@ public class CommandManager {
             server.getCommandManager().unregister(commandName);
             registeredCommands.remove(commandName);
             logger.info("Unregistered command: /{}", commandName);
+
+            // Unregister aliases
+            for (String alias : command.getAliases()) {
+                server.getCommandManager().unregister(alias);
+                logger.info("Unregistered alias: /{}", alias);
+            }
         }
     }
 
     public void unregisterAll() {
         for (String commandName : registeredCommands.keySet()) {
+            Script.CommandScript command = registeredCommands.get(commandName);
             server.getCommandManager().unregister(commandName);
+            
+            // Unregister aliases
+            for (String alias : command.getAliases()) {
+                server.getCommandManager().unregister(alias);
+            }
         }
         registeredCommands.clear();
         logger.info("Unregistered all script commands");
     }
 }
-

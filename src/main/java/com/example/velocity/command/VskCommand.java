@@ -4,6 +4,8 @@ import com.example.velocity.script.CommandManager;
 import com.example.velocity.script.LoadResult;
 import com.example.velocity.script.Script;
 import com.example.velocity.script.ScriptLoader;
+import com.example.velocity.script.event.EventManager;
+import com.example.velocity.script.variable.VariableManager;
 import com.velocitypowered.api.command.SimpleCommand;
 import net.kyori.adventure.text.Component;
 import net.kyori.adventure.text.format.NamedTextColor;
@@ -15,11 +17,16 @@ import java.util.List;
 public class VskCommand implements SimpleCommand {
     private final ScriptLoader scriptLoader;
     private final CommandManager commandManager;
+    private final EventManager eventManager;
+    private final VariableManager variableManager;
     private final Logger logger;
 
-    public VskCommand(ScriptLoader scriptLoader, CommandManager commandManager, Logger logger) {
+    public VskCommand(ScriptLoader scriptLoader, CommandManager commandManager, EventManager eventManager, 
+                      VariableManager variableManager, Logger logger) {
         this.scriptLoader = scriptLoader;
         this.commandManager = commandManager;
+        this.eventManager = eventManager;
+        this.variableManager = variableManager;
         this.logger = logger;
     }
 
@@ -38,6 +45,7 @@ public class VskCommand implements SimpleCommand {
             case "reload" -> handleReload(invocation, args);
             case "enable" -> handleEnable(invocation, args);
             case "disable" -> handleDisable(invocation, args);
+            case "info" -> handleInfo(invocation);
             default -> showUsage(invocation);
         }
     }
@@ -47,6 +55,14 @@ public class VskCommand implements SimpleCommand {
         invocation.source().sendMessage(Component.text("  /vsk reload <all|script.vsk>", NamedTextColor.YELLOW));
         invocation.source().sendMessage(Component.text("  /vsk enable <script.vsk>", NamedTextColor.YELLOW));
         invocation.source().sendMessage(Component.text("  /vsk disable <script.vsk>", NamedTextColor.YELLOW));
+        invocation.source().sendMessage(Component.text("  /vsk info - Show plugin info and stats", NamedTextColor.YELLOW));
+    }
+
+    private void handleInfo(Invocation invocation) {
+        invocation.source().sendMessage(Component.text("=== VelocitySk Info ===", NamedTextColor.GOLD));
+        invocation.source().sendMessage(Component.text("Version: 1.0.0", NamedTextColor.YELLOW));
+        invocation.source().sendMessage(Component.text("Variables: " + variableManager.getStats(), NamedTextColor.YELLOW));
+        invocation.source().sendMessage(Component.text("Events: " + eventManager.getStats(), NamedTextColor.YELLOW));
     }
 
     // ========== RELOAD ==========
@@ -79,8 +95,10 @@ public class VskCommand implements SimpleCommand {
 
         try {
             commandManager.unregisterAll();
+            eventManager.unregisterAll();
             LoadResult result = scriptLoader.loadScripts();
             commandManager.registerScripts(result.getScripts());
+            eventManager.registerScripts(result.getScripts());
 
             if (result.getScripts().isEmpty()) {
                 invocation.source().sendMessage(
@@ -125,6 +143,8 @@ public class VskCommand implements SimpleCommand {
 
             commandManager.unregisterScriptCommands(script);
             commandManager.registerScript(script);
+            // Note: Event triggers are reloaded with full reload only
+            // Individual script event reloading is not yet supported
 
             invocation.source().sendMessage(
                 Component.text("Successfully reloaded script: " + scriptName, NamedTextColor.GREEN)
@@ -229,7 +249,7 @@ public class VskCommand implements SimpleCommand {
         
         // First argument: subcommands
         if (args.length == 0 || args.length == 1) {
-            List<String> suggestions = List.of("reload", "enable", "disable");
+            List<String> suggestions = List.of("reload", "enable", "disable", "info");
             
             if (args.length == 1) {
                 String input = args[0].toLowerCase();
@@ -253,6 +273,7 @@ public class VskCommand implements SimpleCommand {
                 }
                 case "enable" -> suggestions.addAll(scriptLoader.getDisabledScriptNames());
                 case "disable" -> suggestions.addAll(scriptLoader.getEnabledScriptNames());
+                case "info" -> {} // No suggestions for info
             }
             
             String input = args[1].toLowerCase();
