@@ -25,7 +25,7 @@ import java.sql.SQLException;
     name = "VelocitySk",
     version = "1.0.0",
     description = "A recreation of Skript for Velocity",
-    authors = {"Author"}
+    authors = {"owenmakesmistakes"}
 )
 public class VelocityPlugin {
 
