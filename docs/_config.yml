@@ -1,9 +1,7 @@
 title: VelocitySk Documentation
 description: A Skript-like scripting plugin for Velocity proxy servers
 theme: minima
-remote_theme: jekyll/minima
 plugins:
   - jekyll-feed
   - jekyll-seo-tag
-  - jekyll-remote-theme
 
