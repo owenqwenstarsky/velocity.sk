@@ -1,3 +1,8 @@
+---
+layout: page
+title: Examples
+---
+
 # Complete Examples
 
 This page contains complete, ready-to-use script examples demonstrating various features of VelocitySk.

@@ -1,3 +1,8 @@
+---
+layout: page
+title: Conditionals
+---
+
 # Conditionals
 
 Conditionals allow you to execute actions only when certain conditions are met. They're essential for creating dynamic, intelligent scripts.

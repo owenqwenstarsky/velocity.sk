@@ -1,3 +1,8 @@
+---
+layout: page
+title: Variables
+---
+
 # Variables
 
 Variables allow you to store and retrieve data in your scripts. VelocitySk supports three types of variables: global, local, and lists.

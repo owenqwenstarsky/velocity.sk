@@ -1,3 +1,8 @@
+---
+layout: page
+title: Events
+---
+
 # Events
 
 Events allow your scripts to automatically react to things that happen on your proxy, such as players joining, quitting, or switching servers.

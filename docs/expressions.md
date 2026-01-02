@@ -1,3 +1,8 @@
+---
+layout: page
+title: Expressions
+---
+
 # Expressions
 
 Expressions are values that can be evaluated at runtime. They're used in conditions, variable assignments, messages, and more.

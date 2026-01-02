@@ -1,3 +1,8 @@
+---
+layout: page
+title: Commands
+---
+
 # Commands
 
 Commands allow players to execute custom actions by typing in chat.

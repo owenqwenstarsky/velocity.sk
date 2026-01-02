@@ -1,3 +1,8 @@
+---
+layout: page
+title: Actions
+---
+
 # Actions
 
 Actions are the things your scripts actually do. They're the lines that execute when a command is run or an event is triggered.

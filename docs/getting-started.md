@@ -1,3 +1,8 @@
+---
+layout: page
+title: Getting Started
+---
+
 # Getting Started with VelocitySk
 
 VelocitySk is a Skript-like scripting plugin for Velocity proxy servers. It allows you to create custom commands, handle events, and manage variables using a simple, readable syntax.
