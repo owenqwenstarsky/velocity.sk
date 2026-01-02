@@ -1,22 +1,19 @@
 ---
 layout: home
-title: Welcome to VelocitySk
 ---
-
-# VelocitySk Documentation
 
 VelocitySk is a powerful, Skript-inspired scripting engine for [Velocity](https://papermc.io/software/velocity) proxy servers. It allows you to create custom commands, handle events, and automate your proxy with ease.
 
 ## Quick Links
 
-- [**Getting Started**](getting-started.md) - Install and write your first script
-- [**Commands**](commands.md) - Define custom commands and arguments
-- [**Events**](events.md) - React to proxy and player events
-- [**Variables**](variables.md) - Store and retrieve data persistently
-- [**Conditionals**](conditionals.md) - Add logic and decision-making
-- [**Expressions**](expressions.md) - Use dynamic values and placeholders
-- [**Actions**](actions.md) - Perform actions like sending messages or executing commands
-- [**Examples**](examples.md) - See complete script examples
+- [**Getting Started**](getting-started.html) - Install and write your first script
+- [**Commands**](commands.html) - Define custom commands and arguments
+- [**Events**](events.html) - React to proxy and player events
+- [**Variables**](variables.html) - Store and retrieve data persistently
+- [**Conditionals**](conditionals.html) - Add logic and decision-making
+- [**Expressions**](expressions.html) - Use dynamic values and placeholders
+- [**Actions**](actions.html) - Perform actions like sending messages or executing commands
+- [**Examples**](examples.html) - See complete script examples
 
 ## Why VelocitySk?
 

@@ -1,6 +1,6 @@
 ---
 layout: page
-title: Getting Started
+title: Get Started
 ---
 
 # Getting Started with VelocitySk

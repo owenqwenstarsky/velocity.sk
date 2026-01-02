@@ -5,3 +5,13 @@ plugins:
   - jekyll-feed
   - jekyll-seo-tag
 
+header_pages:
+  - getting-started.md
+  - commands.md
+  - events.md
+  - variables.md
+  - conditionals.md
+  - expressions.md
+  - actions.md
+  - examples.md
+
